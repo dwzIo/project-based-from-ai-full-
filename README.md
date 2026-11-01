@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://tailwindcss.com">
-    <img src="https://zonalogo.com/assets/tailwind-css-logo-png-svg.webp?asset=3289" alt="Tailwind CSS" width="150">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa62eb49bsXKvUm8fzxqacVBUVGxEGhr5VfgmwKYS-zH60cQaDT2SHzpw&s=10" alt="Tailwind CSS" width="150">
   </a>
 </p>
 
