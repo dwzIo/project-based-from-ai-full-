@@ -1,6 +1,11 @@
 # 🚨 Suki Liar Detector 🚨
 
-[![Tailwind CSS](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQisj-x_nnqfiAN965vLYD8BIX2_BzLOnPxEEiiq2iU6M2R0nXW-H3mY_3U&s=10)](https://tailwindcss.com)
+<p align="center">
+  <a href="https://tailwindcss.com">
+    <img src="https://zonalogo.com/assets/tailwind-css-logo-png-svg.webp" alt="Tailwind CSS" width="150">
+  </a>
+</p>
+
 
 **Suki Liar Detector** adalah sebuah aplikasi web pemindai satiris interaktif yang berfungsi untuk mendeteksi tingkat *ke-cringe-an*, humor garing, atau penggunaan tren meme basi yang salah konteks di media sosial. Aplikasi ini menganalisis teks (komentar atau nama target) berdasarkan basis data kata kunci (*red flags*) digital kontemporer.
 
