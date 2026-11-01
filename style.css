@@ -1,0 +1,273 @@
+/* ═══════════════════════════════════════════════
+   style.css — Suki Liar Detector 3D Edition
+═══════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #04060d;
+  color: #f1f5f9;
+  overflow-x: hidden;
+}
+
+/* ── Three.js canvas — fixed behind everything ── */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Scroll wrapper above canvas ── */
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 56px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Glass card ── */
+.glass {
+  background: rgba(10, 15, 28, 0.72);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 1px rgba(245,158,11,0.06),
+    0 8px 32px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* ── Gradient title ── */
+.title-gradient {
+  background: linear-gradient(130deg, #fde68a 0%, #f59e0b 45%, #fb923c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 18px rgba(245,158,11,0.35));
+}
+
+.text-glow { filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
+
+/* ── Overline label ── */
+.overline {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.4); border-radius: 2px; }
+
+/* ── Input ── */
+.input-field {
+  width: 100%;
+  background: rgba(4, 6, 13, 0.7);
+  border: 1px solid rgba(100,116,139,0.25);
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-size: 14px;
+  color: #f1f5f9;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.input-field::placeholder { color: #334155; }
+.input-field:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
+}
+
+/* ── CTA Button ── */
+.btn-detect {
+  width: 100%;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b 55%, #d97706);
+  color: #0d1117;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+.btn-detect::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.15), transparent 55%);
+  pointer-events: none;
+}
+.btn-detect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(245,158,11,0.4);
+  filter: brightness(1.07);
+}
+.btn-detect:active { transform: scale(0.98); }
+.btn-detect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Ghost button ── */
+.btn-ghost {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(100,116,139,0.3);
+  border-radius: 10px;
+  color: #475569;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-ghost:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: rgba(245,158,11,0.05);
+}
+
+/* ── Spinner ── */
+@keyframes spin360 { to { transform: rotate(360deg); } }
+.spin { animation: spin360 0.75s linear infinite; }
+
+/* ── Result card ── */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.slide-up { animation: revealUp 0.45s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+/* ── Score pop ── */
+@keyframes popIn {
+  0%   { transform: scale(0.6); opacity: 0; }
+  65%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.score-pop { animation: popIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+/* ── Progress fill ── */
+@keyframes fillBar {
+  from { width: 0%; }
+}
+.fill-bar { animation: fillBar 1s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+/* ── Badge glow pulse ── */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 10px 2px currentColor; }
+}
+.badge-glow { animation: glowPulse 2.2s ease-in-out infinite; }
+
+/* ── History enter ── */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.history-enter { animation: slideIn 0.28s ease-out forwards; }
+
+/* ── Tab buttons ── */
+.tab-btn {
+  flex: 1;
+  padding: 12px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #475569;
+  position: relative;
+  transition: color 0.2s;
+}
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 60%; height: 2px;
+  background: #f59e0b;
+  border-radius: 2px;
+  transition: transform 0.22s cubic-bezier(0.16,1,0.3,1);
+}
+.tab-btn.tab-active { color: #f59e0b; font-weight: 700; }
+.tab-btn.tab-active::after { transform: translateX(-50%) scaleX(1); }
+.tab-btn:not(.tab-active):hover { color: #94a3b8; }
+
+/* ── Diagnosis accent bar ── */
+.diag-box {
+  background: rgba(4,6,13,0.5);
+  border: 1px solid rgba(100,116,139,0.15);
+  border-left: 3px solid #f59e0b;
+  border-radius: 0 10px 10px 0;
+  padding: 14px 16px;
+}
+
+/* ── Keyword tag ── */
+.kw-tag {
+  display: inline-block;
+  background: rgba(245,158,11,0.08);
+  color: rgba(245,158,11,0.85);
+  border: 1px solid rgba(245,158,11,0.18);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  cursor: default;
+  transition: background 0.15s, transform 0.15s;
+}
+.kw-tag:hover { background: rgba(245,158,11,0.18); transform: translateY(-1px); }
+
+/* ── Divider with text ── */
+.divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 20px 0;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: rgba(255,255,255,0.06);
+}
+.divider span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+/* ── Responsive max-width ── */
+.content-wrap { width: 100%; max-width: 480px; }
+
+/* ── 3D scene overlay hint (subtle vignette) ── */
+#app::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(4,6,13,0.5) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Utility: hidden — usados por JS via classList ── */
+.hidden { display: none !important; }

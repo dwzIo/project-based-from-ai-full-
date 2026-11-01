@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suki Liar Detector 🗿</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Three.js r158 via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════
+       THREE.JS CANVAS — background 3D scene
+  ══════════════════════════════════════════ -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ══════════════════════════════════════════
+       APP WRAPPER — scrollable above canvas
+  ══════════════════════════════════════════ -->
+  <div id="app">
+
+    <!-- ── HEADER ── -->
+    <header class="content-wrap text-center" style="margin-bottom:40px">
+      <p class="overline" style="margin-bottom:12px;color:#f59e0b;opacity:.5">
+        Kegaiban™ Research Institute — CDA-9
+      </p>
+      <h1 class="title-gradient text-glow"
+          style="font-size:clamp(3rem,9vw,4.5rem);font-weight:900;line-height:1;letter-spacing:-0.02em;display:block;margin-bottom:4px">
+        Suki Liar
+      </h1>
+      <h1 style="font-size:clamp(3rem,9vw,4.5rem);font-weight:900;line-height:1;letter-spacing:-0.02em;color:rgba(241,245,249,.88);margin-bottom:20px">
+        Detector <span style="font-size:2.2rem">🗿</span>
+      </h1>
+      <p style="color:#475569;font-size:13.5px;line-height:1.65;max-width:340px;margin:0 auto">
+        Masukkan nama &amp; komentar target.<br />
+        Biarkan sains yang bicara — walau hasilnya gak ilmiah sama sekali.
+      </p>
+    </header>
+
+    <!-- ── MAIN CARD ── -->
+    <main class="content-wrap" style="margin-bottom:16px">
+      <div class="glass" style="padding:28px 28px 32px">
+
+        <p class="overline" style="margin-bottom:20px">Identifikasi Target</p>
+
+        <!-- Input Nama -->
+        <div style="margin-bottom:14px">
+          <label for="targetName"
+            style="display:block;font-size:11.5px;color:#475569;margin-bottom:6px;font-weight:500">
+            Nama / Username
+          </label>
+          <input id="targetName" type="text"
+            placeholder="@sigma_ngawi_official"
+            class="input-field" />
+        </div>
+
+        <!-- Textarea Komentar -->
+        <div style="margin-bottom:22px">
+          <label for="behaviorText"
+            style="display:block;font-size:11.5px;color:#475569;margin-bottom:6px;font-weight:500">
+            Komentar / Ciri Perilaku
+          </label>
+          <textarea id="behaviorText" rows="4"
+            placeholder="Tempel komentar di sini… cth: 'menyala abangku skibidi sigma W rizz no cap'"
+            class="input-field" style="resize:none"></textarea>
+        </div>
+
+        <!-- CTA Button -->
+        <button id="detectBtn" onclick="runDetection()" class="btn-detect">
+          <span style="margin-right:6px">🔍</span> Deteksi Sekarang
+        </button>
+
+        <!-- ── LOADING STATE ── -->
+        <div id="loadingState" style="display:none;margin-top:32px;display:none;flex-direction:column;align-items:center;gap:16px;padding:8px 0">
+          <!-- Spinner -->
+          <div style="position:relative;width:48px;height:48px">
+            <div class="spin" style="position:absolute;inset:0;border-radius:50%;border:3px solid rgba(245,158,11,.12);border-top-color:#f59e0b"></div>
+            <div class="spin" style="position:absolute;inset:6px;border-radius:50%;border:2px solid rgba(51,65,85,.8);border-bottom-color:rgba(245,158,11,.45);animation-direction:reverse;animation-duration:1.1s"></div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px">🗿</div>
+          </div>
+          <p id="loadingText" style="color:rgba(245,158,11,.75);font-size:13px;font-weight:500;text-align:center"></p>
+          <div style="width:100%;background:rgba(15,23,42,.9);border-radius:2px;height:2px">
+            <div id="loadingBar" style="height:100%;background:#f59e0b;border-radius:2px;width:0%;transition:width 1.3s ease-out"></div>
+          </div>
+        </div>
+
+        <!-- ── HASIL DIAGNOSIS ── -->
+        <div id="resultCard" style="display:none;margin-top:32px">
+
+          <!-- Divider -->
+          <div class="divider"><span>Laporan</span></div>
+
+          <!-- Target + Badge -->
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+            <div>
+              <p class="overline" style="margin-bottom:3px">Target</p>
+              <p id="resultName" style="font-weight:700;color:#f1f5f9;font-size:18px;line-height:1.2"></p>
+            </div>
+            <span id="resultBadge" class="badge-glow"
+              style="margin-top:4px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid;letter-spacing:.04em;white-space:nowrap">
+            </span>
+          </div>
+
+          <!-- Score + Gauge -->
+          <div style="display:flex;align-items:flex-end;gap:16px;margin-bottom:12px">
+            <div>
+              <p class="overline" style="margin-bottom:4px">Cringe Score</p>
+              <p id="resultScore" class="title-gradient score-pop"
+                style="font-size:52px;font-weight:900;line-height:1;letter-spacing:-0.02em"></p>
+            </div>
+            <div id="gaugeBar" aria-hidden="true"
+              style="flex:1;display:flex;align-items:flex-end;gap:3px;height:44px;padding-bottom:6px"></div>
+          </div>
+
+          <!-- Score bar -->
+          <div style="background:rgba(15,23,42,.9);border-radius:3px;height:6px;margin-bottom:22px;overflow:hidden">
+            <div id="scoreBar" class="fill-bar" style="height:100%;border-radius:3px;width:0%"></div>
+          </div>
+
+          <!-- Diagnosis box -->
+          <div class="diag-box" style="margin-bottom:18px">
+            <p class="overline" style="margin-bottom:6px">🧬 Analisis CDA-9</p>
+            <p id="resultDiagnosis" style="color:#94a3b8;font-size:13.5px;line-height:1.65"></p>
+          </div>
+
+          <!-- Keyword tags -->
+          <div id="keywordSection" style="display:none;margin-bottom:18px">
+            <p class="overline" style="margin-bottom:8px">⚠️ Kata Kunci Terdeteksi</p>
+            <div id="keywordTags" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          </div>
+
+          <!-- Share / Salin Diagnosis -->
+          <button id="shareBtn" onclick="shareResult()" class="btn-ghost" style="margin-bottom:8px">
+            📋 Salin Hasil Diagnosis
+          </button>
+
+          <!-- Reset -->
+          <button onclick="resetForm()" class="btn-ghost" style="margin-top:0">
+            <span>↩</span> Periksa Target Lain
+          </button>
+
+        </div><!-- /resultCard -->
+      </div><!-- /glass -->
+    </main>
+
+    <!-- ── RIWAYAT PEMERIKSAAN ── -->
+    <section class="content-wrap" style="margin-bottom:8px">
+      <div class="glass">
+
+        <!-- Header -->
+        <div style="padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between">
+          <p class="overline">Riwayat Pemeriksaan</p>
+          <span style="display:flex;align-items:center;gap:6px;font-size:10px;color:#334155">
+            <span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;animation:glowPulse 2s infinite"></span>
+            live
+          </span>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div style="display:flex;border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)">
+          <button id="tab-all"      onclick="setFilter('all')"      class="tab-btn tab-active">All (0)</button>
+          <button id="tab-normal"   onclick="setFilter('normal')"   class="tab-btn">Normal (0)</button>
+          <button id="tab-sukiLiar" onclick="setFilter('sukiLiar')" class="tab-btn">Suki Liar (0)</button>
+        </div>
+
+        <!-- History List -->
+        <ul id="historyList"
+          style="max-height:320px;overflow-y:auto;list-style:none;padding:0 20px">
+        </ul>
+
+        <!-- Empty State -->
+        <div id="historyEmpty" style="padding:48px 24px;text-align:center">
+          <p style="font-size:36px;margin-bottom:10px">🗿</p>
+          <p style="color:#334155;font-size:13px">Belum ada yang diperiksa.</p>
+          <p style="color:#1e293b;font-size:11.5px;margin-top:4px">Isi form di atas dan tekan Deteksi.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="text-align:center;font-size:11px;color:#1e293b;margin-top:28px">
+      Suki Liar Detector © 2026 — Kegaiban™ Research Institute
+      <span style="margin:0 6px;opacity:.3">·</span>
+      Untuk hiburan semata, jangan baper.
+    </footer>
+
+  </div><!-- /app -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       THREE.JS — 3D Background Scene
+       Tiga layer:
+         1. ParticleField  — 1400 titik melayang acak
+         2. FloatingRings  — 3 cincin wireframe berputar
+         3. CringeRadar    — bola dodekahedral dengan shader amber
+  ══════════════════════════════════════════════════════════ -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* ─── Setup renderer ─────────────────────────────── */
+    const canvas   = document.getElementById('bg-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x04060d, 1);
+
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 5);
+
+    /* ─── Fog jauh ───────────────────────────────────── */
+    scene.fog = new THREE.FogExp2(0x04060d, 0.06);
+
+    /* ─── Pencahayaan ────────────────────────────────── */
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambLight);
+
+    const pointAmber = new THREE.PointLight(0xf59e0b, 4, 12);
+    pointAmber.position.set(2, 2, 3);
+    scene.add(pointAmber);
+
+    const pointBlue = new THREE.PointLight(0x3b82f6, 2, 10);
+    pointBlue.position.set(-3, -1, 2);
+    scene.add(pointBlue);
+
+    /* ─── 1. PARTICLE FIELD ──────────────────────────── */
+    const PARTICLE_COUNT = 1400;
+    const pPositions = new Float32Array(PARTICLE_COUNT * 3);
+    const pSizes     = new Float32Array(PARTICLE_COUNT);
+    const pColors    = new Float32Array(PARTICLE_COUNT * 3);
+
+    const colAmber = new THREE.Color(0xf59e0b);
+    const colBlue  = new THREE.Color(0x3b82f6);
+    const colWhite = new THREE.Color(0xffffff);
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      pPositions[i * 3]     = (Math.random() - 0.5) * 28;
+      pPositions[i * 3 + 1] = (Math.random() - 0.5) * 22;
+      pPositions[i * 3 + 2] = (Math.random() - 0.5) * 16;
+      pSizes[i] = Math.random() * 1.8 + 0.4;
+
+      /* Campur warna secara acak */
+      const r = Math.random();
+      let c = r < 0.4 ? colAmber : r < 0.65 ? colBlue : colWhite;
+      pColors[i * 3]     = c.r;
+      pColors[i * 3 + 1] = c.g;
+      pColors[i * 3 + 2] = c.b;
+    }
+
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+    pGeo.setAttribute('color',    new THREE.BufferAttribute(pColors, 3));
+    pGeo.setAttribute('size',     new THREE.BufferAttribute(pSizes, 1));
+
+    const pMat = new THREE.PointsMaterial({
+      size:           0.045,
+      vertexColors:   true,
+      transparent:    true,
+      opacity:        0.55,
+      sizeAttenuation: true,
+    });
+
+    const particles = new THREE.Points(pGeo, pMat);
+    scene.add(particles);
+
+    /* ─── 2. FLOATING WIREFRAME RINGS ────────────────── */
+    const rings = [];
+
+    function makeRing(radius, tube, color, rx, ry, rz, x, y, z) {
+      const geo = new THREE.TorusGeometry(radius, tube, 16, 80);
+      const mat = new THREE.MeshBasicMaterial({ color, wireframe: false, transparent: true, opacity: 0.08 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.rotation.set(rx, ry, rz);
+      mesh.position.set(x, y, z);
+      scene.add(mesh);
+
+      /* Garis tepi */
+      const edgeGeo = new THREE.EdgesGeometry(geo);
+      const edgeMat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.22 });
+      const edge    = new THREE.LineSegments(edgeGeo, edgeMat);
+      mesh.add(edge);
+
+      rings.push(mesh);
+      return mesh;
+    }
+
+    makeRing(2.8,  0.015, 0xf59e0b, 1.1,  0.3,  0,    0,    0.2,  -1);
+    makeRing(1.9,  0.010, 0x3b82f6, 0.3,  1.2,  0.5,  0.8, -0.5,  -0.5);
+    makeRing(3.6,  0.008, 0xffffff, 0.7, -0.4,  1.0, -0.4,  0.8,  -2);
+
+    /* ─── 3. CRINGE RADAR — Central dodecahedron ─────── */
+    const radarGeo = new THREE.DodecahedronGeometry(0.85, 0);
+    const radarMat = new THREE.MeshStandardMaterial({
+      color:       0x0a0f1e,
+      emissive:    new THREE.Color(0xf59e0b),
+      emissiveIntensity: 0.12,
+      metalness:   0.9,
+      roughness:   0.2,
+      wireframe:   false,
+    });
+    const radar = new THREE.Mesh(radarGeo, radarMat);
+    radar.position.set(0, 0, -0.5);
+    scene.add(radar);
+
+    /* Wireframe overlay di atas radar */
+    const wireGeo = new THREE.EdgesGeometry(radarGeo);
+    const wireMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.35 });
+    const wire    = new THREE.LineSegments(wireGeo, wireMat);
+    radar.add(wire);
+
+    /* Halo glow di sekitar radar */
+    const haloGeo = new THREE.SphereGeometry(1.05, 32, 32);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color:       0xf59e0b,
+      transparent: true,
+      opacity:     0.03,
+      side:        THREE.BackSide,
+    });
+    const halo = new THREE.Mesh(haloGeo, haloMat);
+    radar.add(halo);
+
+    /* ─── 4. FLOATING SMALL DODECAHEDRA (accent) ─────── */
+    const floaters = [];
+
+    function makeFloater(size, color, x, y, z) {
+      const g = new THREE.OctahedronGeometry(size);
+      const m = new THREE.MeshStandardMaterial({
+        color,
+        emissive: new THREE.Color(color),
+        emissiveIntensity: 0.3,
+        metalness: 0.8,
+        roughness: 0.3,
+      });
+      const mesh = new THREE.Mesh(g, m);
+      mesh.position.set(x, y, z);
+      scene.add(mesh);
+      const eg = new THREE.EdgesGeometry(g);
+      const em = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5 });
+      mesh.add(new THREE.LineSegments(eg, em));
+      floaters.push({ mesh, speed: 0.3 + Math.random() * 0.4, phase: Math.random() * Math.PI * 2 });
+      return mesh;
+    }
+
+    makeFloater(0.18, 0xf59e0b,  2.2,  1.0, -1.0);
+    makeFloater(0.12, 0x3b82f6, -2.5,  0.5, -0.8);
+    makeFloater(0.22, 0xfbbf24,  1.8, -1.4, -1.5);
+    makeFloater(0.10, 0xffffff, -1.6, -0.9, -0.5);
+    makeFloater(0.15, 0xf59e0b, -2.0,  1.6, -2.0);
+
+    /* ─── Mouse parallax ────────────────────────────── */
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', e => {
+      mouseX = (e.clientX / window.innerWidth  - 0.5) * 2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    /* ─── Resize ─────────────────────────────────────── */
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /* ─── Scroll offset ──────────────────────────────── */
+    let scrollY = 0;
+    window.addEventListener('scroll', () => { scrollY = window.scrollY; });
+
+    /* ─── Animation loop ─────────────────────────────── */
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      /* Particles drift */
+      particles.rotation.y = t * 0.012;
+      particles.rotation.x = t * 0.006;
+
+      /* Radar spin + pulse */
+      radar.rotation.x = t * 0.22;
+      radar.rotation.y = t * 0.35;
+      const pulse = 1 + Math.sin(t * 1.8) * 0.04;
+      radar.scale.setScalar(pulse);
+      radarMat.emissiveIntensity = 0.1 + Math.sin(t * 2.1) * 0.06;
+      wireMat.opacity = 0.25 + Math.sin(t * 1.5) * 0.1;
+
+      /* Rings rotate */
+      rings[0].rotation.z = t * 0.15;
+      rings[0].rotation.x = Math.PI / 3 + t * 0.08;
+      rings[1].rotation.z = -t * 0.22;
+      rings[1].rotation.y = t * 0.1;
+      rings[2].rotation.x = t * 0.09;
+      rings[2].rotation.z = t * 0.12;
+
+      /* Floaters bob */
+      floaters.forEach(({ mesh, speed, phase }) => {
+        mesh.rotation.x += speed * 0.018;
+        mesh.rotation.y += speed * 0.012;
+        mesh.position.y += Math.sin(t * speed + phase) * 0.0015;
+      });
+
+      /* Camera subtle parallax */
+      camera.position.x += (mouseX * 0.35 - camera.position.x) * 0.04;
+      camera.position.y += (-mouseY * 0.2  - camera.position.y) * 0.04;
+      camera.position.y -= scrollY * 0.0008;
+      camera.lookAt(0, 0, 0);
+
+      /* Amber point light orbit */
+      pointAmber.position.x = Math.cos(t * 0.5) * 3.5;
+      pointAmber.position.z = Math.sin(t * 0.5) * 3.5;
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  })();
+  </script>
+
+  <!-- App logic -->
+  <script src="script.js"></script>
+
+</body>
+</html>
